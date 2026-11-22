@@ -1,0 +1,21 @@
+[workspace]
+members = [
+    "crates/vively-core",
+    "crates/vively-audio",
+    "crates/vively-app",
+    "crates/vively-ffi",
+    "crates/vively",
+]
+default-members = ["crates/vively"]
+resolver = "2"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1

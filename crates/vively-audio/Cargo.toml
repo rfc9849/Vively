@@ -1,0 +1,19 @@
+[package]
+name = "vively-audio"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+futures-util = "0.3"
+playwire = "2.1.0"
+reqwest = { version = "0.12.28", default-features = false, features = ["rustls-tls", "gzip", "deflate", "zstd", "stream"] }
+rodio = { version = "0.23.0", default-features = false, features = ["playback", "mp3", "mp4", "flac", "vorbis", "wav"] }
+tokio = { version = "1", features = ["rt", "sync", "time", "fs"] }
+url = "2"
+vively-core = { path = "../vively-core" }
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+wiremock = "0.6"

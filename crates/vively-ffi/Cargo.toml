@@ -1,0 +1,36 @@
+[package]
+name = "vively-ffi"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "vively_ffi"
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["bindgen"]
+
+[features]
+# Only for generating Kotlin bindings on the host; keeps bindgen out of the .so.
+bindgen = ["uniffi/cli"]
+
+[dependencies]
+futures-channel = "0.3"
+thiserror = "2"
+uniffi = "0.32"
+vively-app = { path = "../vively-app" }
+vively-audio = { path = "../vively-audio" }
+vively-core = { path = "../vively-core" }
+
+[dev-dependencies]
+serde_json = "1"
+tempfile = "3"
+tokio = { version = "1", features = ["rt-multi-thread"] }
+wiremock = "0.6"
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni-sys = "0.3"
+ndk-context = "0.1"

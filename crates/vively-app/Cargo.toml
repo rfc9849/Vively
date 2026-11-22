@@ -1,0 +1,21 @@
+[package]
+name = "vively-app"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+async-trait = "0.1"
+futures-channel = "0.3"
+futures-util = "0.3"
+qrcode = { version = "0.14", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "fs", "macros"] }
+url = { version = "2", features = ["serde"] }
+vively-audio = { path = "../vively-audio" }
+vively-core = { path = "../vively-core" }
+
+[dev-dependencies]
+tempfile = "3"
+wiremock = "0.6"

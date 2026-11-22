@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Vively
+Exec=vively
+TryExec=vively
+Icon=eu.r3pr3ss10n.vively
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+StartupWMClass=eu.r3pr3ss10n.vively
