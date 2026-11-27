@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,8 +40,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,6 +61,7 @@ import eu.r3pr3ss10n.vively.core.FfiRepeat
 import eu.r3pr3ss10n.vively.core.FfiTrack
 import eu.r3pr3ss10n.vively.core.formatDuration
 import kotlinx.coroutines.delay
+import kotlin.math.roundToLong
 
 @Composable
 fun PlayerScreen() {
@@ -142,7 +144,9 @@ fun PlayerScreen() {
 
         when (app.stageTab) {
             null -> PlayerArtworkPane(track, pb, pos, Modifier.weight(1f).then(dismiss))
-            StageTab.Lyrics -> PlayerLyricsPane(track, pb, Modifier.weight(1f))
+            StageTab.Lyrics -> key(track.fullId) {
+                PlayerLyricsPane(track, pb, pos, Modifier.weight(1f))
+            }
             StageTab.Queue -> PlayerQueuePane(track, pb, Modifier.weight(1f))
         }
 
@@ -403,23 +407,28 @@ private fun CompactPlayerStrip(track: FfiTrack, pb: FfiPlayback) {
 }
 
 @Composable
-private fun PlayerLyricsPane(track: FfiTrack, pb: FfiPlayback, modifier: Modifier) {
+private fun PlayerLyricsPane(track: FfiTrack, pb: FfiPlayback, positionSecs: Double, modifier: Modifier) {
     val app = LocalApp.current
     val c = VivelyTheme.colors
-    val lyrics = snapshotOf(app.store.lyricsRev, track.fullId) { app.core.lyrics() }
+    val lyrics = snapshotOf(app.store.lyricsRev) { app.core.lyrics() }
     val list = rememberLazyListState()
-    var lastManualScroll by remember { mutableLongStateOf(0L) }
+    val isDragged by list.interactionSource.collectIsDraggedAsState()
+    var autoScroll by remember { mutableStateOf(true) }
 
-    LaunchedEffect(list.isScrollInProgress) {
-        if (list.isScrollInProgress) lastManualScroll = System.currentTimeMillis()
+    LaunchedEffect(isDragged) {
+        if (isDragged) {
+            autoScroll = false
+        } else if (!autoScroll) {
+            delay(3500)
+            autoScroll = true
+        }
     }
 
-    val activeIdx = lyrics?.active?.toInt()
-    LaunchedEffect(activeIdx, lyrics?.synced) {
-        if (lyrics?.synced == true && activeIdx != null && activeIdx >= 0) {
-            if (System.currentTimeMillis() - lastManualScroll > 3500L) {
-                runCatching { list.animateScrollToItem((activeIdx - 2).coerceAtLeast(0)) }
-            }
+    val positionMs = (positionSecs * 1000).roundToLong()
+    val activeIdx = lyrics?.takeIf { it.synced }?.lines?.indexOfLast { it.beginMs <= positionMs }
+    LaunchedEffect(activeIdx, isDragged, autoScroll) {
+        if (autoScroll && !isDragged && activeIdx != null && activeIdx >= 0) {
+            list.animateScrollToItem((activeIdx - 2).coerceAtLeast(0))
         }
     }
 
